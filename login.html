@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#070b1a">
+<title>Sign in · Personal Expense Tracking Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  body.auth-body{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    overflow:hidden;
+  }
+  /* stronger, closer glow blobs just for the auth screen */
+  body.auth-body::before{
+    background:
+      radial-gradient(520px 420px at 12% 12%, rgba(91,141,255,.28), transparent 60%),
+      radial-gradient(560px 460px at 88% 18%, rgba(162,107,255,.26), transparent 60%),
+      radial-gradient(600px 480px at 50% 105%, rgba(47,227,196,.18), transparent 60%);
+  }
+
+  .auth-wrap{
+    position:relative; z-index:1;
+    width:100%;
+    max-width:960px;
+    display:grid;
+    grid-template-columns:1.05fr 1fr;
+    background:linear-gradient(180deg,var(--panel),var(--panel-2));
+    border:1px solid var(--border);
+    border-radius:24px;
+    box-shadow:0 30px 90px rgba(2,4,16,.6);
+    overflow:hidden;
+  }
+
+  /* ---- left: brand / pitch panel ---- */
+  .auth-showcase{
+    position:relative;
+    padding:44px 40px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    background:
+      radial-gradient(360px 280px at 15% 8%, rgba(91,141,255,.35), transparent 65%),
+      radial-gradient(340px 300px at 100% 100%, rgba(162,107,255,.32), transparent 65%),
+      linear-gradient(165deg,var(--bg-950),var(--bg-900) 65%,var(--bg-950));
+    border-right:1px solid var(--border-soft);
+  }
+  .auth-brand{display:flex; align-items:center; gap:12px;}
+  .auth-brand .brand-icon{width:42px; height:42px;}
+  .auth-brand h1{font-size:1.02rem; line-height:1.28; color:#fff; max-width:220px;}
+  .auth-brand span{
+    display:block; font-size:.66rem; letter-spacing:1.6px; text-transform:uppercase; font-weight:700;
+    background:linear-gradient(90deg,var(--teal),var(--blue));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .auth-pitch h2{
+    font-size:1.7rem; line-height:1.28; color:#fff; font-weight:700;
+    margin:0 0 12px;
+    max-width:22ch;
+  }
+  .auth-pitch p{font-size:.9rem; color:var(--muted); line-height:1.6; max-width:34ch; margin:0;}
+  .auth-stats{display:flex; gap:24px; margin-top:28px;}
+  .auth-stat b{display:block; font-family:'Sora',sans-serif; font-size:1.3rem; color:#fff;}
+  .auth-stat span{font-size:.72rem; color:var(--muted);}
+  .auth-showcase-foot{font-size:.78rem; color:var(--dim);}
+
+  /* ---- right: form panel ---- */
+  .auth-panel{
+    padding:44px 40px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  .auth-panel-head{margin-bottom:22px;}
+  .auth-panel-head h2{font-size:1.3rem; color:#fff; font-weight:700; margin-bottom:6px;}
+  .auth-panel-head p{margin:0; font-size:.84rem; color:var(--muted);}
+
+  .auth-tabs{display:flex; background:var(--glass-strong); border:1px solid var(--border-soft); border-radius:12px; padding:4px; margin-bottom:22px;}
+  .auth-tab{flex:1; text-align:center; padding:9px 0; border-radius:9px; font-size:.85rem; font-weight:600; color:var(--muted); cursor:pointer; border:none; background:none; font-family:inherit; transition:background .15s,color .15s;}
+  .auth-tab.active{background:linear-gradient(135deg,var(--blue),var(--violet)); color:#fff; box-shadow:0 6px 18px rgba(91,141,255,.3);}
+
+  .auth-form{display:flex; flex-direction:column; gap:14px;}
+  .auth-form label{display:flex; flex-direction:column; gap:6px; font-size:.8rem; color:var(--muted); font-weight:600;}
+  .auth-form input{
+    border:1px solid var(--border); border-radius:10px; padding:11px 13px;
+    font-size:.9rem; color:var(--ink); background:var(--glass);
+  }
+  .auth-form input::placeholder{color:var(--dim);}
+  .auth-form input:focus{outline:2px solid var(--blue); outline-offset:1px;}
+  .auth-error{
+    display:none; background:var(--rose-bg); border:1px solid rgba(255,93,129,.3); color:var(--rose);
+    font-size:.8rem; padding:9px 12px; border-radius:9px; font-weight:500;
+  }
+  .auth-error.show{display:block;}
+  .auth-hint{font-size:.76rem; color:var(--muted); text-align:center; margin-top:18px;}
+
+  @media (max-width:780px){
+    .auth-wrap{grid-template-columns:1fr; max-width:420px;}
+    .auth-showcase{display:none;}
+    .auth-panel{padding:36px 28px;}
+  }
+</style>
+</head>
+<body class="auth-body">
+
+<div class="auth-wrap">
+
+  <!-- ===== left showcase panel ===== -->
+  <div class="auth-showcase">
+    <div class="auth-brand">
+      <div class="brand-icon">
+        <img src="assets/logo.png" alt="Logo">
+      </div>
+      <div>
+        <h1>Personal Expense Tracking Assistant</h1>
+        <span>Track · Analyze · Plan</span>
+      </div>
+    </div>
+
+    <div class="auth-pitch">
+      <h2>Every rupee, tracked and explained.</h2>
+      <p>See where your money goes, spot patterns automatically, and ask your AI assistant anything about your spending — in plain language.</p>
+      <div class="auth-stats">
+        <div class="auth-stat"><b>24/7</b><span>AI assistant</span></div>
+        <div class="auth-stat"><b>100%</b><span>Private ledger</span></div>
+        <div class="auth-stat"><b>0₹</b><span>To get started</span></div>
+      </div>
+    </div>
+
+    <p class="auth-showcase-foot">Better spending. Brighter future.</p>
+  </div>
+
+  <!-- ===== right form panel ===== -->
+  <div class="auth-panel">
+    <div class="auth-panel-head">
+      <h2 id="auth-title">Welcome back</h2>
+      <p id="auth-subtitle">Log in to see your latest financial overview.</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-mode="login">Log in</button>
+      <button class="auth-tab" data-mode="register">Create account</button>
+    </div>
+
+    <div class="auth-error" id="auth-error"></div>
+
+    <form class="auth-form" id="auth-form">
+      <label>Username
+        <input type="text" id="auth-username" autocomplete="username" required minlength="3" maxlength="32" placeholder="e.g. santhosh">
+      </label>
+      <label>Password
+        <input type="password" id="auth-password" autocomplete="current-password" required minlength="6" placeholder="••••••••">
+      </label>
+      <button type="submit" class="submit-btn" id="auth-submit">Log in</button>
+    </form>
+
+    <p class="auth-hint" id="auth-hint">New here? Switch to "Create account" above to open your own private ledger.</p>
+  </div>
+
+</div>
+
+<script>
+  const API = window.location.origin;
+  let mode = 'login';
+
+  const tabs = document.querySelectorAll('.auth-tab');
+  const submitBtn = document.getElementById('auth-submit');
+  const hint = document.getElementById('auth-hint');
+  const errorBox = document.getElementById('auth-error');
+  const passwordInput = document.getElementById('auth-password');
+  const title = document.getElementById('auth-title');
+  const subtitle = document.getElementById('auth-subtitle');
+
+  // If already logged in, skip straight to the dashboard.
+  if (localStorage.getItem('ledger_token')) {
+    window.location.href = 'index.html';
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      mode = tab.dataset.mode;
+      tabs.forEach(t => t.classList.toggle('active', t === tab));
+      errorBox.classList.remove('show');
+      if (mode === 'login') {
+        submitBtn.textContent = 'Log in';
+        hint.textContent = 'New here? Switch to "Create account" above to open your own private ledger.';
+        passwordInput.setAttribute('autocomplete', 'current-password');
+        title.textContent = 'Welcome back';
+        subtitle.textContent = "Log in to see your latest financial overview.";
+      } else {
+        submitBtn.textContent = 'Create account';
+        hint.textContent = 'Already have an account? Switch to "Log in" above.';
+        passwordInput.setAttribute('autocomplete', 'new-password');
+        title.textContent = 'Create your ledger';
+        subtitle.textContent = 'Set a username and password to start tracking.';
+      }
+    });
+  });
+
+  document.getElementById('auth-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorBox.classList.remove('show');
+    const username = document.getElementById('auth-username').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = mode === 'login' ? 'Logging in…' : 'Creating account…';
+
+    try {
+      const res = await fetch(`${API}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Something went wrong.');
+
+      localStorage.setItem('ledger_token', data.token);
+      localStorage.setItem('ledger_username', data.username);
+      window.location.href = 'index.html';
+    } catch (err) {
+      errorBox.textContent = err.message;
+      errorBox.classList.add('show');
+      submitBtn.disabled = false;
+      submitBtn.textContent = mode === 'login' ? 'Log in' : 'Create account';
+    }
+  });
+</script>
+</body>
+</html>

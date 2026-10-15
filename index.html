@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Expense Tracking Assistant</title>
+<script>
+  // Guard the dashboard: bounce straight to login if there's no session,
+  // before the rest of the page has a chance to render.
+  if (!localStorage.getItem('ledger_token')) {
+    window.location.href = 'login.html';
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<meta name="theme-color" content="#070b1a">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">
+        <img src="assets/logo.png" alt="Logo">
+      </div>
+      <div class="brand-text">
+        <h1>Personal Expense Tracking Assistant</h1>
+        <span>Track · Analyze · Plan</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="#" class="nav-item active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.6" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.6" stroke="currentColor" stroke-width="1.6"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.6" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="13" width="7.5" height="7.5" rx="1.6" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-action="add-expense">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 8.5V15.5M8.5 12H15.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span>Add Expense</span>
+      </a>
+      <a href="#" class="nav-item" data-view="ledger">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="4.5" y="3.5" width="15" height="17" rx="1.8" stroke="currentColor" stroke-width="1.6"/><path d="M8 8H16M8 12H16M8 16H12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span>My Ledger</span>
+      </a>
+      <a href="#" class="nav-item" data-action="scroll-charts">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10.5M10 20V4M16 20V13M22 20H2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Charts</span>
+      </a>
+      <a href="#" class="nav-item" data-action="show-portfolio">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3.5 8.5 12 4l8.5 4.5V17L12 21.5 3.5 17V8.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.5 8.5 12 13l8.5-4.5M12 13v8.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <span>Portfolio</span>
+      </a>
+      <a href="#" class="nav-item" data-action="show-planner">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v6M12 3c-3 0-5.5 2-6.5 5M12 3c3 0 5.5 2 6.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="14" r="7" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="14" r="3" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="14" r="0.6" fill="currentColor"/></svg>
+        <span>Planner</span>
+      </a>
+      <a href="#" class="nav-item" data-action="focus-chat">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="12" rx="3" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="11" r="1.1" fill="currentColor"/><circle cx="15" cy="11" r="1.1" fill="currentColor"/><path d="M9 17V19.5L12.5 17" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <span>Yosra AI</span>
+      </a>
+      <a href="#" class="nav-item" data-action="show-profile">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.2" r="3.4" stroke="currentColor" stroke-width="1.6"/><path d="M4.8 20c1.2-3.6 4.1-5.6 7.2-5.6s6 2 7.2 5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span>Profile</span>
+      </a>
+      <a href="#" class="nav-item" data-action="toast-settings">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.56V19.5a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1H4.5a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H10.5a1.7 1.7 0 0 0 1-1.56V4.5a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V10.5a1.7 1.7 0 0 0 1.56 1H19.5a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        <span>Settings</span>
+      </a>
+      <a href="#" class="nav-item" data-action="logout">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 21H5.5A1.5 1.5 0 0 1 4 19.5v-15A1.5 1.5 0 0 1 5.5 3H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Logout</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="theme-toggle" id="theme-toggle">
+        <button type="button" class="theme-btn" data-theme-btn="day" aria-label="Day mode">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.55 1.55M7.15 16.85 5.6 18.4M18.4 18.4l-1.55-1.55M7.15 7.15 5.6 5.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span>Day</span>
+        </button>
+        <button type="button" class="theme-btn" data-theme-btn="night" aria-label="Night mode">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.7 6.7 0 0 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <span>Night</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <header class="topbar">
+      <div>
+        <h2 id="welcome-heading">Welcome, Santhosh <span class="wave">👋</span></h2>
+        <p>Good morning! Here's your financial overview.</p>
+      </div>
+      <div class="topbar-right">
+        <div class="pill" id="today-pill">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="16" rx="2.2" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 9.5h17M8 3v3M16 3v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span>Loading date…</span>
+        </div>
+        <div class="notif-wrap">
+          <button class="icon-btn" id="notif-btn" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 13 6 9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span class="dot" id="notif-dot" hidden></span>
+          </button>
+          <div class="notif-panel" id="notif-panel">
+            <div class="notif-panel-head">Notifications</div>
+            <ul class="notif-list" id="notif-list">
+              <li class="notif-empty">No notifications yet.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="profile-chip">
+          <div class="avatar">S</div>
+          <span>Santhosh</span>
+          <svg viewBox="0 0 24 24" fill="none" width="14" height="14"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== Dashboard alerts (over-budget categories, bills due soon) ===== -->
+    <div class="dashboard-alerts" id="dashboard-alerts"></div>
+
+    <!-- ===== Summary cards ===== -->
+    <section class="cards">
+      <article class="card">
+        <div class="card-icon icon-green">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 15 10 9l4 4 6-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 6h5v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="card-body">
+          <p class="card-label">Total Income</p>
+          <p class="card-value" id="stat-income">₹ 0</p>
+          <p class="card-change up" id="stat-income-change">—</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-icon icon-red">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5h16v11a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 18.5v-11Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M4 7.5 6.5 4h11L20 7.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="16" cy="13" r="1.3" fill="currentColor"/></svg>
+        </div>
+        <div class="card-body">
+          <p class="card-label">Total Expenses</p>
+          <p class="card-value" id="stat-expenses">₹ 0</p>
+          <p class="card-change down" id="stat-expenses-change">—</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-icon icon-blue">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="5.2" stroke="currentColor" stroke-width="1.6"/><circle cx="15" cy="15" r="5.2" stroke="currentColor" stroke-width="1.6"/></svg>
+        </div>
+        <div class="card-body">
+          <p class="card-label">Balance</p>
+          <p class="card-value" id="stat-balance">₹ 0</p>
+          <p class="card-change up" id="stat-balance-change">—</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-icon icon-amber">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4.5" width="17" height="16" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17" stroke="currentColor" stroke-width="1.6"/><path d="M8 13.5h2.2M13.8 13.5H16M8 17h2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <div class="card-body">
+          <p class="card-label">Today's Expenses</p>
+          <p class="card-value" id="stat-today">₹ 0</p>
+          <p class="card-sub" id="stat-today-count">0 transactions</p>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===== Content grid: charts+ledger | ai assistant ===== -->
+    <div class="content-grid">
+
+      <div class="left-col">
+        <section class="panel charts-row" id="charts-section">
+          <div class="panel-card daily-panel">
+            <div class="panel-head">
+              <h3><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><rect x="3.5" y="4.5" width="17" height="16" rx="2.2" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 9.5h17" stroke="currentColor" stroke-width="1.6"/></svg> Daily Expenses</h3>
+              <div class="legend-inline">
+                <span><i class="dot-legend" style="background:#2fe3c4"></i>Income</span>
+                <span><i class="dot-legend" style="background:#ff5d81"></i>Expenses</span>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="dailyChart"></canvas>
+            </div>
+          </div>
+
+          <div class="panel-card category-panel">
+            <div class="panel-head">
+              <h3><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 3.5A8.5 8.5 0 0 1 20.5 12H12V3.5Z" fill="currentColor"/></svg> Category Wise Expenses</h3>
+            </div>
+            <div class="donut-wrap">
+              <div class="donut-chart-holder">
+                <canvas id="categoryChart"></canvas>
+                <div class="donut-center">
+                  <span class="donut-amount" id="donut-total">₹ 0</span>
+                  <span class="donut-label">Total Expenses</span>
+                </div>
+              </div>
+              <ul class="cat-legend" id="cat-legend"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel transactions-panel">
+          <div class="panel-head">
+            <h3><svg viewBox="0 0 24 24" fill="none" width="18" height="18"><rect x="4.5" y="3.5" width="15" height="17" rx="1.8" stroke="currentColor" stroke-width="1.6"/><path d="M8 8H16M8 12H16M8 16H12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> <span id="ledger-title">Recent Transactions (Ledger)</span></h3>
+            <button class="link-btn" id="view-all-btn">View All →</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="right">Amount (₹)</th><th class="right">Balance (₹)</th><th class="right">Actions</th></tr>
+              </thead>
+              <tbody id="tx-body"></tbody>
+              <tfoot>
+                <tr><td colspan="4"><strong>Total</strong></td><td class="right total-amt" id="tx-total">—</td><td class="right">—</td><td></td></tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===== Yosra AI floating widget ===== -->
+    <div class="yosra-widget" id="yosra-widget">
+      <aside class="ai-panel" id="ai-panel">
+        <div class="ai-head">
+          <div class="ai-head-left">
+            <div class="bot-avatar">
+              <img src="assets/logo-ai.png" alt="Yosra AI">
+            </div>
+          </div>
+          <div class="ai-head-right">
+            <span class="online"><i></i>Online</span>
+            <button type="button" class="ai-voice-toggle" id="ai-voice-toggle" aria-label="Read replies aloud" title="Read replies aloud">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 10v4h3l4 4V6l-4 4H4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M15.5 9a3 3 0 0 1 0 6M18 7a6 6 0 0 1 0 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
+            <button type="button" class="ai-history-toggle" id="ai-history-toggle" aria-label="Chat history">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+            <button type="button" class="ai-close" id="yosra-close" aria-label="Minimize Yosra AI">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="ai-body">
+          <div class="ai-history" id="ai-history">
+            <button type="button" class="ai-history-new" id="ai-history-new">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              New chat
+            </button>
+            <div class="ai-history-list" id="ai-history-list"></div>
+          </div>
+
+          <div class="ai-main">
+            <div class="chat-messages" id="chat-messages"></div>
+
+            <form class="chat-input" id="chat-form">
+              <button type="button" class="chat-mic-btn" id="chat-mic-btn" aria-label="Speak to Yosra AI" title="Speak to Yosra AI">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" stroke="currentColor" stroke-width="1.6"/><path d="M6 11a6 6 0 0 0 12 0M12 19v2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              </button>
+              <input type="text" id="chat-input" placeholder="Ask something about your expenses…" autocomplete="off">
+              <button type="submit" aria-label="Send">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M4 12 20 4 13 20l-2-6-7-2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      </aside>
+
+      <button type="button" class="yosra-fab" id="yosra-fab" aria-label="Open Yosra AI" aria-expanded="false">
+        <img src="assets/logo-ai.png" alt="Yosra AI">
+        <span class="yosra-fab-dot"></span>
+      </button>
+    </div>
+
+    <!-- ===== Quick actions ===== -->
+    <section class="quick-actions">
+      <button class="qa-card" id="qa-add">
+        <span class="qa-icon icon-green"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 8.5V15.5M8.5 12H15.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span><strong>Add Expense</strong><br>Record a new transaction</span>
+      </button>
+      <button class="qa-card" id="qa-charts">
+        <span class="qa-icon icon-blue"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10.5M10 20V4M16 20V13M22 20H2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span><strong>View Charts</strong><br>See your spending patterns</span>
+      </button>
+      <button class="qa-card" id="qa-chat">
+        <span class="qa-icon icon-purple"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="12" rx="3" stroke="currentColor" stroke-width="1.6"/><circle cx="9" cy="11" r="1.1" fill="currentColor"/><circle cx="15" cy="11" r="1.1" fill="currentColor"/></svg></span>
+        <span><strong>Ask Yosra AI</strong><br>Get insights &amp; suggestions</span>
+      </button>
+      <button class="qa-card" id="qa-export">
+        <span class="qa-icon icon-amber"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3.5" width="14" height="17" rx="1.8" stroke="currentColor" stroke-width="1.6"/><path d="M9 8h6M9 12h6M9 16h3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span><strong>Export / Import</strong><br>Backup or restore your data</span>
+      </button>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== Add expense modal ===== -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add a transaction</h3>
+      <button id="modal-close" aria-label="Close">✕</button>
+    </div>
+    <form id="expense-form">
+      <div class="scan-row">
+        <button type="button" id="scan-btn" class="scan-btn">📷 Scan receipt</button>
+        <input type="file" id="scan-input" accept="image/*" capture="environment" hidden>
+        <span id="scan-status" class="scan-status"></span>
+      </div>
+      <label>Description
+        <input type="text" id="f-description" placeholder="e.g. Grocery shopping" required>
+      </label>
+      <div class="modal-row">
+        <label>Category
+          <select id="f-category">
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Shopping</option>
+            <option>Bills</option>
+            <option>Entertainment</option>
+            <option>Others</option>
+            <option id="f-category-income">Income</option>
+          </select>
+        </label>
+        <label>Type
+          <select id="f-type">
+            <option value="Debit">Debit (expense)</option>
+            <option value="Credit">Credit (income)</option>
+          </select>
+        </label>
+      </div>
+      <div class="modal-row">
+        <label>Amount (₹)
+          <input type="number" id="f-amount" min="0.01" step="0.01" placeholder="0.00" required>
+        </label>
+        <label>Date
+          <input type="date" id="f-date">
+        </label>
+      </div>
+      <p id="review-hint" class="review-hint" hidden></p>
+      <button type="submit" class="submit-btn">Save transaction</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== Portfolio details modal ===== -->
+<div class="modal-overlay" id="portfolio-overlay">
+  <div class="modal portfolio-modal">
+    <div class="modal-head">
+      <h3>Portfolio Details</h3>
+      <button id="portfolio-close" aria-label="Close">✕</button>
+    </div>
+    <div class="portfolio-stats">
+      <div class="portfolio-stat">
+        <span class="portfolio-label">Total Balance</span>
+        <span class="portfolio-value" id="pf-balance">₹ 0</span>
+      </div>
+      <div class="portfolio-stat">
+        <span class="portfolio-label">Total Income</span>
+        <span class="portfolio-value up" id="pf-income">₹ 0</span>
+      </div>
+      <div class="portfolio-stat">
+        <span class="portfolio-label">Total Expenses</span>
+        <span class="portfolio-value down" id="pf-expenses">₹ 0</span>
+      </div>
+    </div>
+    <h4 class="portfolio-subhead">Spending by Category (all time)</h4>
+    <ul class="cat-legend" id="pf-categories"></ul>
+  </div>
+</div>
+
+<!-- ===== Profile modal ===== -->
+<div class="modal-overlay" id="profile-overlay">
+  <div class="modal profile-modal">
+    <div class="modal-head">
+      <h3>Profile</h3>
+      <button id="profile-close" aria-label="Close">✕</button>
+    </div>
+    <div class="profile-details">
+      <div class="profile-avatar-lg" id="profile-avatar-lg">?</div>
+      <p class="profile-name" id="profile-name">—</p>
+      <p class="profile-meta" id="profile-since">—</p>
+      <p class="profile-meta" id="profile-tx-count">—</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Import / Export modal ===== -->
+<div class="modal-overlay" id="io-overlay">
+  <div class="modal io-modal">
+    <div class="modal-head">
+      <h3>Export / Import Ledger</h3>
+      <button id="io-close" aria-label="Close">✕</button>
+    </div>
+
+    <div class="io-actions">
+      <button type="button" class="io-btn" id="io-export-btn">⬇ Export as CSV</button>
+      <label class="io-btn" for="io-file-input">⬆ Import from CSV</label>
+      <input type="file" id="io-file-input" accept=".csv" hidden>
+    </div>
+    <p class="io-hint">Importing restores transactions from a CSV file — either one exported from here earlier, or your own, with columns for Date, Description, Category, Type and Amount.</p>
+
+    <div class="io-preview" id="io-preview" hidden>
+      <p class="io-preview-label"><span id="io-preview-count">0</span> transaction(s) found — review before importing:</p>
+      <div class="io-table-wrap">
+        <table class="io-table">
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="right">Amount</th></tr></thead>
+          <tbody id="io-preview-body"></tbody>
+        </table>
+      </div>
+      <div class="io-preview-actions">
+        <button type="button" class="io-cancel-btn" id="io-cancel-btn">Cancel</button>
+        <button type="button" class="submit-btn" id="io-confirm-btn">Import transactions</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== Planner modal (Budgets / Goals / Bills) ===== -->
+<div class="modal-overlay" id="planner-overlay">
+  <div class="modal planner-modal">
+    <div class="modal-head">
+      <h3>Planner</h3>
+      <button id="planner-close" aria-label="Close">✕</button>
+    </div>
+
+    <div class="planner-tabs">
+      <button type="button" class="planner-tab active" data-tab="budgets">Budgets</button>
+      <button type="button" class="planner-tab" data-tab="goals">Goals</button>
+      <button type="button" class="planner-tab" data-tab="bills">Bills</button>
+    </div>
+
+    <!-- Budgets -->
+    <div class="planner-pane active" id="planner-pane-budgets">
+      <p class="planner-alert" id="budget-alert" hidden></p>
+      <div class="budget-list" id="budget-list"></div>
+    </div>
+
+    <!-- Goals -->
+    <div class="planner-pane" id="planner-pane-goals">
+      <div class="goal-list" id="goal-list"></div>
+      <button type="button" class="planner-add-toggle" id="goal-add-toggle">+ New savings goal</button>
+      <form class="planner-inline-form" id="goal-form" hidden>
+        <label>Goal name
+          <input type="text" id="goal-name" placeholder="e.g. New laptop" required>
+        </label>
+        <div class="modal-row">
+          <label>Target amount (₹)
+            <input type="number" id="goal-target" min="1" step="0.01" required>
+          </label>
+          <label>Target date <span class="optional-tag">optional</span>
+            <input type="date" id="goal-date">
+          </label>
+        </div>
+        <button type="submit" class="submit-btn">Create goal</button>
+      </form>
+    </div>
+
+    <!-- Bills -->
+    <div class="planner-pane" id="planner-pane-bills">
+      <div class="bill-list" id="bill-list"></div>
+      <button type="button" class="planner-add-toggle" id="bill-add-toggle">+ New recurring bill</button>
+      <form class="planner-inline-form" id="bill-form" hidden>
+        <label>Bill name
+          <input type="text" id="bill-name" placeholder="e.g. Rent" required>
+        </label>
+        <div class="modal-row">
+          <label>Amount (₹)
+            <input type="number" id="bill-amount" min="0.01" step="0.01" required>
+          </label>
+          <label>Category
+            <select id="bill-category"></select>
+          </label>
+        </div>
+        <label>Due day of month
+          <input type="number" id="bill-due-day" min="1" max="28" placeholder="e.g. 5" required>
+        </label>
+        <button type="submit" class="submit-btn">Add bill</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="vendor/chart.umd.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
